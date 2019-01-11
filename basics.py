@@ -6,7 +6,6 @@ The Bedell-Spina method.
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import OrderedDict
-from scipy.special import logsumexp
 from scipy import stats
 from spectrum import Spectrum1D
 from scipy import optimize as op
@@ -26,17 +25,18 @@ wls = np.loadtxt("data/line-lists/sun_2015_05_18-2.moog.edited", usecols=(0, ))
 
 
 
-line_wavelength, window, snr = (np.random.choice(wls), 10, 100)
-line_wavelength = 6186.7
+line_wavelength, window, snr = (np.random.choice(wls), 5, 1000)
+#line_wavelength = 6186.7
+line_wavelength = np.random.choice(wls)
 
 idx = np.searchsorted(spectrum.dispersion, 
                       [line_wavelength - window, line_wavelength + window])
 
 x = spectrum.dispersion[idx[0]:idx[1]]
 y = spectrum.flux[idx[0]:idx[1]]
-y_err = np.ones_like(x) * 0.01/2 # np.abs(np.random.normal(0, 2.35/snr, size=y.size))
+y_err = np.ones_like(x) * 0.001 # np.abs(np.random.normal(0, 2.35/snr, size=y.size))
 
-LINE_WAVELENGTH_TOLERANCE = 0.10
+LINE_WAVELENGTH_TOLERANCE = 0.1
 
 
 
@@ -106,7 +106,7 @@ def ln_prior(x, *parameters, bounds=None, full_output=False, **kwargs):
     #    return -np.inf if not full_output else (-np.inf, "w_check")
 
     # Check outlier_mean minimum.
-    if theta["outlier_mean"] < (np.log(3 * np.mean(y_err)) + np.exp(theta["ln_outlier_sigma"])**2):
+    if theta["outlier_mean"] < (np.log(5 * np.mean(y_err)) + np.exp(theta["ln_outlier_sigma"])**2):
         return -np.inf
 
     # Check continuum.
@@ -121,7 +121,7 @@ def ln_likelihood(x, y, y_err, *parameters, **kwargs):
     
     theta = pack(*parameters)
     print(theta)
-    is_line = (np.abs(x - line_wavelength) <= 0.10)
+    is_line = (np.abs(x - line_wavelength) <= 0.20)
 
     model = stellar_flux(x, **theta)
     residuals = (model - y)
@@ -167,14 +167,14 @@ def ln_probability(x, y, y_err, *parameters, **kwargs):
 
 def get_p0():
 
-    sigma = 0.10
+    sigma = 0.05
     ln_outlier_sigma = 2
 
     outlier_mean = 0.5 + (np.log(3 * np.mean(y_err)) + np.exp(ln_outlier_sigma)**2)
 
-    continuum_order = 1
+    continuum_order = 0
 
-    return unpack(dict(w=0.9,
+    return unpack(dict(w=0.5,
                        x_0=line_wavelength,
                        amplitude=(1 - y[int(y.size/2)]),
                        amplitude_L=(1 - y[int(y.size/2)]),
