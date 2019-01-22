@@ -1,0 +1,183 @@
+
+%@arxiver{diagram.pdf,figure3.pdf}
+
+\documentclass[onecolumn]{aastex62}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{enumerate}
+
+\newcommand{\vdag}{(v)^\dagger}
+\newcommand\aastex{AAS\TeX}
+\newcommand\latex{La\TeX}
+
+\newcommand{\SampleSize}{2,330} 
+
+\newcommand\lamost{LAMOST}
+\newcommand\apogee{APOGEE}
+\newcommand\rave{RAVE}
+\newcommand{\project}[1]{\emph{#1}}
+\newcommand{\gaia}{\project{Gaia}}
+\newcommand{\Gaia}{\project{Gaia}}
+\newcommand{\rp}{\textsl{rp}}
+\newcommand{\bp}{\textsl{bp}}
+
+\newcommand{\kepler}{\project{Kepler}}
+\newcommand{\ktwo}{\project{K2}}
+\newcommand{\logg}{\log_{10}[g\,({\rm cm\,s}^{-2})]}
+\newcommand{\likelihood}{\mathcal{L}}
+
+%\graphicspath{{figures/}}
+
+
+\received{January X, 2019}
+\revised{January X, 2019}
+\accepted{January X, 2025}
+\submitjournal{AAS Journals}
+
+\shorttitle{The B-S method}
+\shortauthors{B-S}
+
+
+\begin{document}
+
+\title{The B-S method}
+
+\correspondingauthor{}
+\email{}
+
+
+\begin{abstract}
+\end{abstract}
+
+\keywords{BS}
+
+\section{Introduction} \label{sec:intro}
+
+Spectrographs give an absolute count on the number of electrons at
+a given wavelength, but astronomers are often interested in the 
+counts relative to the level of continuum emission of the source.
+As a result, considerable effort is placed on estimating the source
+continuum from nearby pixels where the counts are or low-order
+polynomial. Few people care about this.
+
+
+\section{Model} \label{sec:model}
+
+% Data
+The data are an array of $N$ pixels, each of which has a
+dispersion value $x_{n}$, the flux counts $y_{n}$ and the 
+uncertainty on that flux counts $\sigma_{yn}$.
+We assume the data are drawn from a two-component mixture model:
+a foreground model to describe the properties we care about, and
+a background model to account for nuisance properties.
+In stellar spectroscopy we are often interested in the strength
+of an electronic transition in absorption relative to the continuum,
+so the foreground component will simultaneously model the local 
+continuum and model the absorption line of interest as a gaussian 
+profile. We assume that the foreground model $f(x)$ has the form
+\begin{equation}
+	f(x) = {C}(x)\,\left[1 - A\exp\left(-\frac{(x - \mu_f)^2}{2\sigma^2_{f}}\right)\right]
+\end{equation}
+\noindent{}where $A$ is the amplitude of the absorption
+profile, $\mu_f$ is the line centroid, $\sigma_f$ is the
+standard deviation of the absorption profile, and $C(x)$ is
+the local continuum evaluated at $x$. Here we take the local
+continuum to be a second order polynomial:
+\begin{equation}
+	C(x) = c_{0}x^2 + c_{1}x^1 + c_2 \quad .
+\end{equation}
+
+
+We assume that all pixels are uncorrelated such that the
+probability distribution function $p\left(y_n|x_n,\sigma_{yn},\theta\right)$
+for the flux in the $n$th pixel $y_{n}$ is
+\begin{equation}
+	p_{f}\left(y_n|x_n,\sigma_{yn},A,\mu,\sigma_f,c_0,c_1,c_2\right) = \frac{1}{\sqrt{2\pi\sigma_{yn}^2}} \exp\left(-\frac{\left[y_{n} - f(x_n)\right]^2}{2\sigma_{yn}^2}\right) \quad .
+\end{equation}
+
+
+
+The role of the background model is to describe the neighbouring absorption
+that we are not interested with. One approach could be to fit additional
+profiles to the neighbouring absorption, but this becomes unwieldily.
+Instead we assume the background model to be a lognormal distribution
+with a mean
+\begin{equation}
+	\mu_{gn} = \frac{f(x_n) - y_n}{f(x_n)}
+\end{equation}
+\noindent{}such that the probability distribution function is
+\begin{equation}
+	p_{g}\left(y_n|x_n,\sigma_{yn},\theta,\sigma_g\right) = \frac{1}{y_n\sqrt{2\pi\sigma^2_{g}}}\exp\left(-\frac{\left[\ln{y_n}-\mu_{gn}\right]^2}{2\sigma^2_g}\right) \quad .
+\end{equation}
+
+We introduce $Q$ as a relative mixing parameter for the foreground and background models, and
+denote ${\theta = \{A,\mu_f,\sigma_f,c_0,c_1,c_2,\sigma_g,Q\}}$, then the 
+likelihood $\likelihood\left(y|x,\sigma_y,\theta\right)$ is proportional to the weighted
+sum of the foreground and background models:
+\begin{eqnarray}
+	\likelihood \propto \prod_{n=1}^{N} \left[\frac{1 - Q}{\sqrt{2\pi\sigma^2_{yn}}}\exp\left(-\frac{\left[y_{n} - f(x_n)\right]^2}{2\sigma^2_{yn}}\right) + \frac{Q}{y_{n}\sqrt{2\pi\sigma^2_{g}}}\exp\left(-\frac{\left[\ln{y_n}-\mu_{gn}\right]^2}{2\sigma^2_g}\right)\right] \quad .
+\end{eqnarray}
+
+\the\textwidth
+
+\subsection{Toy model}
+
+Here we provide some intuition on the parameters of the mixture model. We take a model
+of the Solar spectrum that is continuum normalised and randomly generate the following 
+parameters:
+\begin{eqnarray}
+	c_0 = +1.26\times10^1 \\
+	c_1 = -1.35\times10^5 \\
+	c_2 = +3.62\times10^8
+\end{eqnarray}
+
+A portion of the spectrum centered 5373.71\,\AA\ is shown in Figure~\ref{fig:fig1}, where 
+the true continuum is visible. The flux counts $y_{n}$ in this portion of spectrum are
+shown as a histogram in Figure~\ref{fig:fig2}, where we also show the probability
+distribution function for the foreground and background models given the true
+continuum parameters ($c_0$, $c_1$, $c_2$), $A = 0$ indicating no absorption
+(so $\mu_f = 5373.71$\,\AA\ and $\sigma_f = 0.1$ have no effect), $Q = 0.5$ and
+$\sigma_g = 2$.
+
+In Figure~\ref{fig:fig2} we show a histogram of the flux counts $y_{n}$ of this region.
+
+
+
+\begin{figure*}
+	\includegraphics[width=1.0\textwidth]{fig1.pdf}
+    \caption{A portion of a `model' Solar spectrum (black) multiplied by a low-order 
+    		 polynomial (blue) to represent the continuum.}
+    \label{fig:fig1}
+\end{figure*}
+
+\textbf{Show the PDF of these two models for some values.}
+
+\textbf{Model parameters and priors.}
+
+
+
+
+\acknowledgments
+
+
+\vspace{5mm}
+%\facilities{LAMOST, Kepler, Gaia}
+
+\software{
+     \project{AstroPy}\ \citep{Astropy_2013,Astropy_2018},
+     \project{numpy}\ \citep{Van-Der-Walt_2011},
+     \project{scipy}\ \citep{Jones_2001},
+     \project{matplotlib}\ \citep{Hunter_2007}
+}    
+     
+\bibliographystyle{aasjournal}
+\bibliography{bs}
+
+
+
+%% Include this line if you are using the \added, \replaced, \deleted
+%% commands to see a summary list of all changes at the end of the article.
+%\listofchanges
+
+\end{document}
